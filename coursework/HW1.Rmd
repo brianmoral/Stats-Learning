@@ -1,0 +1,56 @@
+# Assignment 1
+
+We will be using the `Carseats` data set
+
+## Part A
+
+```{r chunk}
+Carseats <- read_csv("~/Desktop/Fall-2022/Stats-Learning/ALL-CSV-FILES/Carseats.csv", show_col_types = FALSE)
+
+carsts_lm = lm(Sales ~ Price + Urban + US, data = Carseats )
+summary(carsts_lm)
+
+```
+
+## Part B
+
+Each coefficient in the model refers to a $\beta_p$, the quantified relation between each predictor and response variable, in our linear model $y_i = {\beta_0} + {\beta_1}x_{i,1} + \cdots+ {\beta_p}x_{i,p}$. - In our case $\beta_0= 13.043$ is the average value of ${\textbf{Y}}$, `Sales`, when $\textbf{X}$ is zero or when a company spend $\$0$ on `Price`, not `UrbanYes` and not `USYes` .
+
+-   `Price` is $\beta_1 = -0.054$ and this is the average change in $\textbf{Y}$ associated with a 1-unit increase in the value $x_j$. In other words, for 100 dollar increase (not sure if its 100's, 1000's) in `Price` the company can expect to sell, $\beta_1 \times 100 = -0.054 \times 100 = -5.4$ less Car Seats sales, on average. There is an extremely low p-value indicating that `Price` and `Sales` have a relation.
+
+-   $\beta_2 =$`Urban` and $\beta_3=$`US` and these are qualitative parameters. Therefore when `UrbanYes` is true and the parameters `Price`$=0$ and `USYes` is false, we will see $\beta_2 \times 100 = -0.02 \times 100 = - 2$ decrease in car seats sales, on average (assuming units are in the 100's). Also, given the high p-value in the model this is suggesting there is no relationship between `Urban` and `Sales`
+
+-   Similarly with `US`, we will see a $120$ increase in car seats sales. On the other hand, `USYes` has significantly low p-value therefore showing evidence of some relation with `Sales`.
+
+## Part C
+
+$$
+\hat{Y_i} = \hat{\beta_0} + \hat{\beta_1}x_{i,1} + \hat{\beta_2}x_{i,2} + \hat{\beta_3}x_{i,3} = 13.043 - 0.054\text{Price} - 0.02\text{UrbanYes} + 1.2\text{USYes}
+$$
+
+## Part D
+
+Looking at the summary table below, if our significance level is $\alpha = 0.05$ we can reject the null hypothesis $H_0$. For `Price` and `USYes` the p-value$< 0.05$ implicating that `Price` and `USYes` predictors has an association to the response, `Sales`. `UrbanYes` has a p-value$> 0.05$, therefore we can't reject the null hypothesis proffering that their is no relation between `UrbanYes` and `Sales`.
+
+```{r}
+summary(carsts_lm)
+```
+
+## Part E
+
+```{r}
+carsts_lms = lm(Sales ~ Price + US, Carseats)
+summary(carsts_lms)
+```
+
+## Part F
+
+Observing P-value of the `carsts_lms`(Part E) model, the p-value is $2.2e^{-16}< 0.05$ so we reject the model. This signifies that we need one of the predictors. However if we look at `carsts_lm`(Part A) the p-value is also $< 0.05$ hinting that we need more predictors. Lets run an a full F-test:
+
+```{r}
+anova(carsts_lms, carsts_lm)
+```
+
+Notice that the p-values associated with the F-test is large, demonstrating that `carsts_lms` is sufficient. Nevertheless, the RSS in both models are very similar. What I conclude is that both models fits the data fairly equally.The `carsts_lms` fits the model somewhat better if you want to be precise.
+
+## Part G
