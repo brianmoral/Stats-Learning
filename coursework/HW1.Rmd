@@ -1,10 +1,26 @@
-# Assignment 1
+---
+title: "Assignment 1"
+jupyter:
+  jupytext:
+    formats: ipynb,Rmd
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.11.2
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+output: pdf_document
+---
 
 We will be using the `Carseats` data set
 
 ## Part A
 
 ```{r chunk}
+library(readr)
 Carseats <- read_csv("~/Desktop/Fall-2022/Stats-Learning/ALL-CSV-FILES/Carseats.csv", show_col_types = FALSE)
 
 carsts_lm = lm(Sales ~ Price + Urban + US, data = Carseats )
@@ -54,3 +70,33 @@ anova(carsts_lms, carsts_lm)
 Notice that the p-values associated with the F-test is large, demonstrating that `carsts_lms` is sufficient. Nevertheless, the RSS in both models are very similar. What I conclude is that both models fits the data fairly equally.The `carsts_lms` fits the model somewhat better if you want to be precise.
 
 ## Part G
+
+```{r}
+
+#seB = summary(carsts_lms)$coefficients[2, 2]
+#beta1 = coefficients(carsts_lms)[2]
+#n = nrow(Carseats)
+#CI = c( beta1 - qt(0.975, df=n-3)*seB, beta1 + qt(0.975, df=n-3)*seB)
+#CI
+
+confint(carsts_lms)
+
+```
+
+## Part H
+
+```{r}
+#cooksd = cooks.distance(carsts_lms)
+#plot(cooksd, pch = "*", cex = 2, main="Influential Obs by Cooks Distance")
+plot(fitted(carsts_lms), rstudent(carsts_lms))
+
+```
+
+Looking at the studentized Residual vs Fitted there looks to be no potential outliers. Every points stay in the same range of $[-3,3]$, which is what we typically look for.
+
+```{r}
+par(mfrow = c(2,2))
+plot(carsts_lms)
+```
+
+Observing the Residuals vs Leverage, there are a few observations the are greater than the average leverage for all observations, $\frac{p+1}{n}= \frac{3}{400}= 0.0075$. This represents that some observations have high leverage.
