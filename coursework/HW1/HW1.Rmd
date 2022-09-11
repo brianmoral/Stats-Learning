@@ -1,5 +1,7 @@
 ---
 title: "Assignment 1"
+author: Brian Morales
+date: August 31, 2022
 jupyter:
   jupytext:
     formats: ipynb,Rmd
@@ -42,7 +44,7 @@ Each coefficient in the model refers to a $\beta_p$, the quantified relation bet
 
 $$
 \hat{Y_i} = \hat{\beta_0} + \hat{\beta_1}x_{i,1} + \hat{\beta_2}x_{i,2} + \hat{\beta_3}x_{i,3} = 13.043 - 0.054\text{Price} - 0.02\text{UrbanYes} + 1.2\text{USYes}
-$$
+$$ Each $\hat{\beta_p}$ corresponds to the coefficient printed out in the summary table. Each $x_{i,p}$ corresponds to its predictor according to its coefficient.
 
 ## Part D
 
@@ -59,6 +61,8 @@ carsts_lms = lm(Sales ~ Price + US, Carseats)
 summary(carsts_lms)
 ```
 
+Above we have a summary of the reduced model - excluding `UrbanYes`. Notice that all the p-values related to each coefficient is significant and the F-statistics has increased.
+
 ## Part F
 
 Observing P-value of the `carsts_lms`(Part E) model, the p-value is $2.2e^{-16}< 0.05$ so we reject the model. This signifies that we need one of the predictors. However if we look at `carsts_lm`(Part A) the p-value is also $< 0.05$ hinting that we need more predictors. Lets run an a full F-test:
@@ -67,7 +71,7 @@ Observing P-value of the `carsts_lms`(Part E) model, the p-value is $2.2e^{-16}<
 anova(carsts_lms, carsts_lm)
 ```
 
-Notice that the p-values associated with the F-test is large, demonstrating that `carsts_lms` is sufficient. Nevertheless, the RSS in both models are very similar. What I conclude is that both models fits the data fairly equally.The `carsts_lms` fits the model somewhat better if you want to be precise.
+Notice that the p-values associated with the F-test is large, demonstrating that `carsts_lms` is sufficient. Nevertheless, the RSS and the adjusted $R^2$ in both models are very similar. What I conclude is that both models fits the data fairly equally.The `carsts_lms` fits the model somewhat better if you want to be precise.
 
 ## Part G
 
@@ -83,20 +87,27 @@ confint(carsts_lms)
 
 ```
 
+Here we are $95\%$ confident that the true value lies around $(-0.064, -0.04)$ for `Price` and $(0.69, 1.70)$ for `USYes`.
+
 ## Part H
 
 ```{r}
+library(car)
 #cooksd = cooks.distance(carsts_lms)
 #plot(cooksd, pch = "*", cex = 2, main="Influential Obs by Cooks Distance")
 plot(fitted(carsts_lms), rstudent(carsts_lms))
-
 ```
 
 Looking at the studentized Residual vs Fitted there looks to be no potential outliers. Every points stay in the same range of $[-3,3]$, which is what we typically look for.
 
 ```{r}
-par(mfrow = c(2,2))
+influencePlot(carsts_lms)
+```
+
+Observing the Influence Plot, there are a few observations that can be removed such as point 26, 377, and 210.
+
+```{r}
 plot(carsts_lms)
 ```
 
-Observing the Residuals vs Leverage, there are a few observations the are greater than the average leverage for all observations, $\frac{p+1}{n}= \frac{3}{400}= 0.0075$. This represents that some observations have high leverage.
+Observing the Residuals vs Leverage, there are a few observations the are greater than the average leverage for all observations, $\frac{p+1}{n} = \frac{3}{400} = 0.0075$. This represents that some observations have high leverage.

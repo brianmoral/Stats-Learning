@@ -1,0 +1,102 @@
+---
+title: "Assignment 2"
+author: Brian Morales
+date: September 11, 2022
+jupyter:
+  jupytext:
+    formats: ipynb,Rmd
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.11.2
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+output: pdf_document
+---
+
+## 1
+
+```{r}
+library(readr)
+library(MASS)
+Carseats <- read_csv("~/Desktop/Fall-2022/Stats-Learning/ALL-CSV-FILES/Carseats.csv", show_col_types = FALSE)
+
+lm.fit = lm(Sales~Price+Urban+US, Carseats)
+summary(lm.fit)
+```
+
+The summary table above displays the estimated coefficients with standard error, t-value and p-value. What want to heed to is the p-value. Notice that the p-value is significant for `Price` and `USYes`, implying that these estimates impact the outcome. `UrbanYes` does not have a significant p-value, therefore it does not affect the response. Below the coefficients we have `signif. codes`; this tells us how significant our coefficients are. The more asterisk, the more significant the p-value. The bottom end of the table tells us how well our model is doing, overall. We have the Residual Standard Error, $R^2$, adjusted $R^2$, and the F-statistic. The $R^2$ is telling us the model is only explaining about $23\%$ of variation in the median sales of `Carseats`. $R^2$ can be very greedy therefore we pay attention to the adjusted $R^2$, which penalizes for the model complexity. The F-statistic test if at least one of the predictors is useful in the response. Our F-statistic is large and the p-value is significant therefore the null hypothesis should be rejected. Usually, we want our F-statistic to be large because the p-value will be close to $0$.
+
+```{r}
+lm.fit2 = lm(Sales~Price+US, Carseats)
+summary(lm.fit2)
+```
+
+`lm.fit2` has removed the `UrbanYes` variable and notice that all our coefficients have a significant p-value. More importantly, we want to look at the adjusted $R^2$ and the F-statistic. The adjusted $R^2$ is pretty much the same as before however, the f-statistic has increase by 20 and the p-value is still significant. This shows us more evidence that at least one of the predictors is associate with the response.
+
+## 2
+
+```{r}
+lm.full = lm(Sales ~ ., Carseats)
+
+summary(lm.full)
+```
+
+Its $R^2$ has increased therefore the full model is explaining $87\%$ of variation in the median sales of `Carseats`. Its adjusted $R^2$ also increased. Usually, the adjusted $R^2$ penalizes for the models complexity, however, the adjusted $R^2 = 87\%$, exhibiting the full model is a better fit than the previous two.
+
+## 3
+
+```{r}
+lm.reduced = lm(Sales ~ CompPrice + Income + Advertising + Price + ShelveLoc + Age, Carseats)
+
+summary(lm.reduced)
+```
+
+Notice that all the estimated coefficients have a significant p-value and the F-statistics has increased by over 100. The $R^2$ and adjusted $R^2$ is similar to the previous model.
+
+## 4
+
+```{r}
+anova(lm.full, lm.reduced)
+anova(lm.full, lm.fit2)
+```
+
+That statistical hypothesis we are testing is whether we should reject the null model or not - reject `lm.full` or accept `lm.full`. Observing the first table we see that the p-value is greater than $\alpha = 0.05$ hence we can get an equally food fit with the reduced model - reject the `lm.full`. Doing a formal f-test on `lm.full` and `lm.fit2`, we see that the p-value is significant therefore we cannot reject `lm.full` and `lm.fit2` does not do as good of a job as `lm.full`.
+
+## 5
+
+```{r}
+AIC(lm.full, lm.reduced, lm.fit2, lm.fit)
+BIC(lm.full, lm.reduced, lm.fit2, lm.fit)
+```
+
+Using the AIC and BIC test we see that for AIC the model selection is `lm.reduced`, similarly with BIC. `lm.reduced` is the lowest value in AIC $= 1160$ and BIC $= 1196$. Note that AIC is a better metric when prediction is the goal and BIC is better when explanation is the goal.
+
+## 6
+
+```{r}
+swAIC.lm = stepAIC(lm.full, k=2, trace = 0, direction = 'both')
+summary(swAIC.lm)
+
+swBIC.lm = stepAIC(lm.full, k=6, trace = 0, direction = 'both')
+summary(swBIC.lm)
+```
+
+Utilizing the `stepAIC` in R, we arrive to the same model that was chosen in part 5, `lm.reduced`. Therefore, the best model from using all predictor is `lm.reduced`.
+
+```{r}
+swAIC.lm = stepAIC(lm.reduced, k=2, trace = 0, direction = 'both')
+summary(swAIC.lm)
+
+swBIC.lm = stepAIC(lm.reduced, k=6, trace = 0, direction = 'both')
+summary(swBIC.lm)
+```
+
+When running `stepAIC` with `lm.reduced` as the argument, we arrive to the same model as before. We can conclude that `lm.reduced` is the best model for the `Carseats` data set.
+
+## 7
+
+No, we do not expect to arrive at the same "best" model applying step wise selection AIC and BIC each time because, as mentioned above, AIC is a better metric when prediction is the goal and BIC is better when explanation is the focus. Above that, in most cases BIC prefers smaller models because of the $(p+1)log(n)$ compared to $2(p+1)$ in AIC.
