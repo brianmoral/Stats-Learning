@@ -1,0 +1,81 @@
+---
+title: "Assignment 3"
+author: Brian Morales
+date: September 17, 2022
+jupyter:
+  jupytext:
+    formats: ipynb,Rmd
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.11.2
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+output: pdf_document
+---
+
+## 13a.
+
+```{r}
+library(readr)
+Weekly <- read_csv("~/Desktop/Fall-2022/Stats-Learning/ALL-CSV-FILES/Weekly.csv", show_col_types = FALSE)
+summary(Weekly)
+Weekly$Direction = as.factor(Weekly$Direction)
+```
+
+```{r, fig1, fig.height = 2, fig.width = 4, fig.asp = .70}
+plot(Weekly, cex = 0.3)
+```
+
+There appears to be an exponential pattern with `Volume` and `Year` and every other variable seems random. We can see that `Volume` is increasing over time, meaning the the average number shares increased from 1990 t0 2010.
+
+## 13b.
+
+```{r}
+glm.fits <- glm(
+    Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
+    data = Weekly, family = binomial
+  )
+summary(glm.fits)
+```
+
+Yes, only one predictor seems to be statistically significant, `Lag2`. `Lag2` has a significant code of $0.01$ so its not very significant either. The positive coefficient in `Lag2` is implying that if the weekly market had a positive return yesterday, than it is likely to go up today.
+
+## 13c
+
+```{r}
+glm.probs <- predict(glm.fits, type = "response")
+
+glm.pred <- rep("Down", nrow(Weekly))
+glm.pred[glm.probs > .5] = "Up"
+table(glm.pred, Weekly$Direction)
+(583 + 23)/1089
+
+```
+
+The confusion matrix tells us what we predicted correctly and what we predicted incorrectly. The diagonals of the matrix shows us the number of correct predictions and the off-diagonals indicates what we incorrectly predicted. Here our model correctly predicted that our market would go down $51$ days and up for $555$, total of $606$ correct predictions. We incorrectly predicted up when the market was actually down $433$ days and down when is was actually up $50$ days a total of $483$ incorrect predictions. Our model is working a little better than random guessing, however, this can be deceptive because we are training and testing on the same dataset. Lets train on part of the data and test on the remaining held out data.
+
+## 13d
+
+```{r}
+train <- (Weekly$Year < 2009)
+Weekly.2008 <- Weekly[!train, ]
+Direction.2010 <- Weekly$Direction[!train]
+
+glm.fits <- glm(
+    Direction ~ Lag2,
+    data = Weekly, family = binomial, subset = train
+  )
+glm.probs <- predict(glm.fits, Weekly.2008,
+    type = "response")
+glm.pred <- rep("Down", nrow(Weekly.2008))
+glm.pred[glm.probs > .5] <- "Up"
+table(glm.pred, Direction.2010)
+65/104
+39/104
+```
+
+As before the diagonals of the matrix displays what our model predicted correct and the off-diagonals are what it predicted incorrectly. Notice that our accuracy is $62.5$ which is better than our previous model. This suggest that our model is predicting better than guessing at random.
