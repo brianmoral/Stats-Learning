@@ -128,7 +128,7 @@ To implement this strategy, we will first create a vector corresponding to the o
 We will then use this vector to create a held out data set of observations from 2005.
 
 ```{r chunk9}
-train <- (Year < 2005)
+train <- (Year < 2005) 
 Smarket.2005 <- Smarket[!train, ]
 dim(Smarket.2005)
 Direction.2005 <- Direction[!train]
