@@ -1,0 +1,82 @@
+---
+title: "Assignment 5"
+author: Brian Morales
+date: October 2, 2022
+jupyter:
+  jupytext:
+    formats: ipynb,Rmd
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.11.2
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+output: pdf_document
+---
+
+```{r}
+library(readr)
+library(MASS)
+Weekly <- read_csv("~/Desktop/Fall-2022/Stats-Learning/ALL-CSV-FILES/Weekly.csv", show_col_types = FALSE)
+Weekly$Direction = as.factor(Weekly$Direction)
+```
+
+## Part A
+
+```{r}
+set.seed(1)
+weekly.fit = glm(Direction ~ Lag1 + Lag2, Weekly, family= 'binomial')
+summary(weekly.fit)
+```
+
+We can see when all the coefficients are zero we have a $22.1\%$ increase in weekly trades when there was no reports on the previous week and 2 weeks. However, we see the weekly market go down when the previous week is included and the market go up when the 2 previous weeks are included.
+
+## Part B
+
+```{r}
+ weekly.fit2 = glm(Direction ~ Lag1 + Lag2, Weekly[-1, ], family = 'binomial')
+summary(weekly.fit2)
+```
+
+Excluding only the first observation, our results are pretty similar with a slight increase in the intercept coefficient, larger decrease in `Lag1`, and a smaller increase in `Lag2`.
+
+## Part C
+
+```{r}
+weekly.predict = predict(weekly.fit2, newdata = Weekly[1,], type = 'response') > 0.5
+weekly.predict
+Weekly[1,]$Direction
+```
+
+Our prediction was classified incorrectly. Our model predicted `true` meaning the market was `UP` when de facto the market was `Down`.
+
+## Part D
+
+```{r}
+options(max.print = 1100)     
+n = nrow(Weekly)
+err = rep(0, n)
+for(i in 1:n) {
+  # part i
+  weekly.fit = glm(Direction ~ Lag1 + Lag2, Weekly[-i, ], family = 'binomial')
+  # part ii
+  posterior = predict(weekly.fit, newdata = Weekly[i, ], type = 'response') > 0.5
+  # part iii
+  actual_direction = Weekly[i,]$Direction == 'Up'
+  if (posterior != actual_direction)
+    # part iv
+    err[i] = 1
+}
+err
+```
+
+## Part E
+
+```{r}
+mean(err)
+```
+
+Our average estimate for our LOOCV is $44.9\%$. This result is pretty poor because we want a test error the is less prone to variance.

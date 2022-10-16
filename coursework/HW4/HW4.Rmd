@@ -90,9 +90,9 @@ The best result are LDA and GLM; both coming in a tie, $62.5%$. The other classi
 
 ```{r}
 set.seed(1)
-knn.pred <- knn(train.X, test.X, train.Direction, k = 4)
+knn.pred <- knn(train.X, test.X, train.Direction, k = 145)
 table(knn.pred, Direction.2010)
-64/104
+66/104
 ```
 
 When $K=4$ our accuracy increases by $10\%$. Fairing much better than when $K=1$.

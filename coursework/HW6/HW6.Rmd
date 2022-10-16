@@ -1,0 +1,107 @@
+---
+title: "Assignment 6"
+author: Brian Morales
+date: October 11, 2022
+jupyter:
+  jupytext:
+    formats: ipynb,Rmd
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.11.2
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+output: pdf_document
+---
+
+```{r}
+library(ISLR)
+library(MASS)
+head(College)
+```
+
+## Part A
+
+A usual train and test split is $\%80$ train and $\%20$ test. Therefore I follow that convention below.
+
+```{r}
+set.seed(001)
+split = sort(sample(nrow(College), nrow(College)*0.8))
+
+train = College[split, ]
+test = College[-split, ]
+```
+
+## Part B: Linear Model
+
+```{r}
+lm.fit = lm(Apps ~., data=train)
+summary(lm.fit)
+```
+
+```{r}
+lm.pred = predict(lm.fit, newdata = test)
+mse = mean((test$Apps - lm.pred)^2)
+print(mse)
+```
+
+Our base case MSE is $1,567,324$. A pretty large MSE.
+
+## Part C: Ridge Regression
+
+### We choose our best lambda using cross validation
+
+```{r}
+library(glmnet)
+x_train = model.matrix(Apps ~., train)[,-1]
+y_train = train$Apps
+
+x_test = model.matrix(Apps ~., test)[,-1]
+y_test = test$Apps
+
+# cross validation selection here
+set.seed(0101)
+cross_valid <- cv.glmnet(x_train, y_train, alpha = 0)
+plot(cross_valid)
+```
+
+```{r}
+bestlam <- cross_valid$lambda.min
+ridge.fit = glmnet(x_train, y_train, alpha = 0, lambda = bestlam)
+ridge.pred = predict(ridge.fit, s = bestlam, newx = x_test)
+mse = mean((ridge.pred - y_test)^2)
+print(mse)
+```
+
+The MSE for ridge regression is $1,442,487$ which is significantly lower than linear regressions MSE.
+
+## Part D: Lasso Regression
+
+### Similarly, we choose best lambda using cross validation
+
+```{r}
+set.seed(010)
+cross_valid <- cv.glmnet(x_train, y_train, alpha = 1)
+plot(cross_valid)
+```
+
+```{r}
+bestlam <- cross_valid$lambda.min
+lasso.fit = glmnet(x_train, y_train, alpha = 1, lambda = bestlam)
+lasso.pred = predict(lasso.fit, s = bestlam, newx = x_test)
+mse = mean((lasso.pred - y_test)^2)
+print(mse)
+```
+
+Here we have our $MSE = 1,553,527$ which is greater than ridge regression and linear regression. I'm kind of surprised because I thought lasso would do the best.
+
+```{r}
+variables = length(lasso.fit$beta)
+lasso_coef = predict(lasso.fit, type="coefficients", s=bestlam)[1:variables,]
+lasso_coef[lasso_coef != 0]
+```
+
+An advantage of the lasso regression is that resulting coefficients estimates can be sparse. In our fit we choose the best $\lambda$ from cross-validation. In our case use all 17 coefficients but in some cases the resulting coefficients can be half or less of all the coefficients.
